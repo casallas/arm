@@ -25,7 +25,34 @@ setMethod("sim", signature(object = "lm"),
     }
 )
 
+setMethod("sim", signature(object = "nls"),
+    function(object, n.sims=100)
+    {
+    object.class <- class(object)[[1]]
+    summ <- summary (object)
+    coef <- summ$coef[,1:2,drop=FALSE]
+    dimnames(coef)[[2]] <- c("coef.est","coef.sd")
+    sigma.hat <- summ$sigma
+    beta.hat <- coef[,1,drop = FALSE]
+    V.beta <- summ$cov.unscaled
+    n <- summ$df[1] + summ$df[2]
+    k <- summ$df[1]
+    sigma <- rep (NA, n.sims)
+    beta <- array (NA, c(n.sims,k))
+    dimnames(beta) <- list (NULL, names(beta.hat))
+    colnames(beta) <- rownames(beta.hat)
+    for (s in 1:n.sims){
+      sigma[s] <- sigma.hat*sqrt((n-k)/rchisq(1,n-k))
+      # TODO check this, maybe use a different distribution?
+      beta[s,] <- MASS::mvrnorm (1, beta.hat, V.beta*sigma[s]^2)
+    }
 
+    ans <- new("sim",
+                coef = beta,
+                sigma = sigma)
+    return (ans)
+    }
+)
 
 setMethod("sim", signature(object = "glm"),
     function(object, n.sims=100)
