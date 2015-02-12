@@ -16,7 +16,7 @@ standardize.default <- function(call, unchanged=NULL,
       thedata <- get(v)
     }
     else {
-      thedata <- get(as.character(call$data))[[v]]
+      thedata <- eval(call$data)[[v]]
     }
     if (is.na(match(v,unchanged))){
       num.categories <- length (unique(thedata[!is.na(thedata)]))
@@ -47,7 +47,7 @@ standardize.default <- function(call, unchanged=NULL,
   else {
     newvars <- NULL
     for (i in transformed.variables) {
-      assign(varnames.new[i], rescale(get(as.character(call$data))[[varnames[i]]], 
+      assign(varnames.new[i], rescale(eval(call$data)[[varnames[i]]],
                 binary.inputs))
       newvars <- cbind(newvars, get(varnames.new[i]))
     }
